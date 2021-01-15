@@ -95,7 +95,23 @@ void InitializeBuckets(const T& grams, TPerfectHash& ph, std::vector<std::pair<u
     }
 }
 
-bool TLangModel::Train(const std::string& fileName, const std::string& alphabetFile) {
+bool TLangModel::Train(const std::string& fileName, const std::string& alphabetFile,
+                       const std::string& pre_trainedModelFile) {
+
+    TLangModel model;
+    if (!pre_trainedModelFile.empty()) {
+        std::cerr << "[info] loading model" << std::endl;
+        if (!model.Load(pre_trainedModelFile)) {
+            std::cerr << "[error] failed to load model" << std::endl;
+            return false;
+        }
+        for (size_t i = 0; i < model.IdToWord.size() - 1; ++i) {
+            TWordId wordId = LastWordID;
+            ++LastWordID;
+            auto it = WordToId.insert(std::make_pair(model.IdToWord[i][0], wordId)).first;
+            IdToWord.push_back(&(it->first));
+        }
+    }
 
     std::cerr << "[info] loading text" << std::endl;
     uint64_t trainStarTime = GetCurrentTimeMs();
@@ -133,23 +149,72 @@ bool TLangModel::Train(const std::string& fileName, const std::string& alphabetF
     for (size_t i = 0; i < total; ++i) {
         const TWordIds& words = sentenceIds[i];
 
-        for (auto w: words) {
+        for (ssize_t j = 0; j < (ssize_t)words.size(); ++j) {
+
+            auto w = words[j];
+
+            if (!pre_trainedModelFile.empty() && grams1.find(w) == grams1.end()) {
+                grams1[w] = model.GetGram1HashCount(w);
+                TotalWords += model.GetGram1HashCount(w);
+            }
+
             grams1[w] += 1;
             TotalWords += 1;
+
+            if (j < (ssize_t)words.size() - 1) {
+                TGram2Key key_2(words[j], words[j + 1]);
+
+                if (!pre_trainedModelFile.empty() && grams2.find(key_2) == grams2.end()) {
+                    grams2[key_2] = model.GetGram2HashCount(words[j], words[j + 1]);
+                }
+
+                grams2[key_2] += 1;
+
+                if (j < (ssize_t)words.size() - 2) {
+                    TGram3Key key_3(words[j], words[j + 1], words[j + 2]);
+
+                    if (!pre_trainedModelFile.empty() && grams3.find(key_3) == grams3.end()) {
+                        grams3[key_3] = model.GetGram3HashCount(words[j], words[j + 1], words[j + 2]);
+                    }
+
+                    grams3[key_3] += 1;
+                }
+            }
         }
 
-        for (ssize_t j = 0; j < (ssize_t)words.size() - 1; ++j) {
-            TGram2Key key(words[j], words[j+1]);
-            grams2[key] += 1;
-        }
-        for (ssize_t j = 0; j < (ssize_t)words.size() - 2; ++j) {
-            TGram3Key key(words[j], words[j+1], words[j+2]);
-            grams3[key] += 1;
-        }
         uint64_t currTime = GetCurrentTimeMs();
         if (currTime - lastTime > 4000) {
             std::cerr << "[info] processed " << (100.0 * float(i) / float(total)) << "%" << std::endl;
             lastTime = currTime;
+        }
+    }
+
+    if(!pre_trainedModelFile.empty()) {
+
+        for (size_t i = 0; i < model.IdToWord.size() - 1; ++i) {
+
+            if (grams1.find(i) == grams1.end()) {
+                uint64_t key_count = model.GetGram1HashCount(i);
+                grams1[i] = key_count;
+                TotalWords += key_count;
+            }
+
+            for (size_t j = 0; j < model.IdToWord.size() - 1; ++j) {
+
+                TGram2Key key_2(i, j);
+                uint64_t key_2_count = model.GetGram2HashCount(i, j);
+                if (key_2_count > 0 && grams2.find(key_2) == grams2.end()) {
+                    grams2[key_2] = key_2_count;
+
+                    for (size_t k = 0; k < model.IdToWord.size() - 1; ++k) {
+                        TGram3Key key_3(i, j, k);
+                        uint64_t key_3_count = model.GetGram3HashCount(i, j, k);
+                        if (key_3_count > 0 && grams3.find(key_3) == grams3.end()) {
+                            grams3[key_3] = key_3_count;
+                        }
+                    }
+                }
+            }
         }
     }
 

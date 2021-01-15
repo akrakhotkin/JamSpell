@@ -42,8 +42,9 @@ bool TSpellCorrector::LoadLangModel(const std::string& modelFile) {
     return true;
 }
 
-bool TSpellCorrector::TrainLangModel(const std::string& textFile, const std::string& alphabetFile, const std::string& modelFile) {
-    if (!LangModel.Train(textFile, alphabetFile)) {
+bool TSpellCorrector::TrainLangModel(const std::string& textFile, const std::string& alphabetFile, const std::string& modelFile,
+                                     const std::string& pre_trainedModelFile) {
+    if (!LangModel.Train(textFile, alphabetFile, pre_trainedModelFile)) {
         return false;
     }
     PrepareCache();
