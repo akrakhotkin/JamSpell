@@ -11,7 +11,8 @@ namespace NJamSpell {
 class TSpellCorrector {
 public:
     bool LoadLangModel(const std::string& modelFile);
-    bool TrainLangModel(const std::string& textFile, const std::string& alphabetFile, const std::string& modelFile);
+    bool TrainLangModel(const std::string& textFile, const std::string& alphabetFile, const std::string& modelFile,
+                        const std::string& pre_trainedModelFile = "");
     NJamSpell::TScoredWords GetCandidatesRawWithScores(const NJamSpell::TWords& sentence, size_t position) const;
     NJamSpell::TWords GetCandidatesRaw(const NJamSpell::TWords& sentence, size_t position) const;
     std::vector<std::wstring> GetCandidates(const std::vector<std::wstring>& sentence, size_t position) const;
@@ -21,6 +22,9 @@ public:
     void SetPenalty(double knownWordsPenalty, double unknownWordsPenalty);
     void SetMaxCandiatesToCheck(size_t maxCandidatesToCheck);
     const NJamSpell::TLangModel& GetLangModel() const;
+    bool ContainsWord(const std::wstring& word) const;
+    NJamSpell::TScoredWords GetCandidatesRawWithScores(const std::vector<std::wstring>& words, size_t position) const;
+    NJamSpell::TWords GetCandidatesRaw(const std::vector<std::wstring>& words, size_t position) const;
 private:
     void FilterCandidatesByFrequency(std::unordered_set<NJamSpell::TWord, NJamSpell::TWordHashPtr>& uniqueCandidates, NJamSpell::TWord origWord) const;
     NJamSpell::TWords Edits(const NJamSpell::TWord& word) const;
