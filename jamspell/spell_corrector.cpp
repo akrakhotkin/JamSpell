@@ -62,6 +62,22 @@ bool TSpellCorrector::TrainLangModel(const std::string& textFile, const std::str
     return true;
 }
 
+bool TSpellCorrector::MergeLangModels(const std::string& baseModelFile, const std::string& complementaryModelFile,
+                                      const std::string& resultModelFile) {
+    if (!LangModel.Merge(baseModelFile, complementaryModelFile)) {
+        return false;
+    }
+    PrepareCache();
+    if (!LangModel.Dump(resultModelFile)) {
+        return false;
+    }
+    std::string cacheFile = resultModelFile + ".spell";
+    if (!SaveCache(cacheFile)) {
+        return false;
+    }
+    return true;
+}
+
 TScoredWords TSpellCorrector::GetCandidatesRawWithScores(const TWords& sentence, size_t position) const {
     TScoredWords scoredCandidates;
 

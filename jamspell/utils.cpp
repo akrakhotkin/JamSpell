@@ -114,6 +114,13 @@ const std::unordered_set<wchar_t>& TTokenizer::GetAlphabet() const {
     return Alphabet;
 }
 
+void TTokenizer::ExtendAlphabet(const std::unordered_set<wchar_t>& extension) {
+    for(const auto& letter : extension)
+    {
+        Alphabet.insert(letter);
+    }
+}
+
 std::wstring UTF8ToWide(const std::string& text) {
 #ifdef USE_BOOST_CONVERT
     using boost::locale::conv::utf_to_utf;

@@ -24,6 +24,17 @@ int Train(const std::string& alphabetFile,
     return 0;
 }
 
+int Merge(const std::string& baseModelFile,
+          const std::string& complementaryModelFile,
+          const std::string& resultModelFile)
+{
+    TLangModel model;
+    model.Merge(baseModelFile, complementaryModelFile);
+    model.Dump(resultModelFile);
+    return 0;
+}
+
+
 int Score(const std::string& modelFile) {
     TLangModel model;
     std::cerr << "[info] loading model" << std::endl;
@@ -123,6 +134,15 @@ int main(int argc, const char** argv) {
         std::string inFile = argv[3];
         std::string outFile = argv[4];
         return Fix(modelFile, inFile, outFile);
+    } else if (mode == "merge") {
+        if (argc < 5) {
+            PrintUsage(argv);
+            return 42;
+        }
+        std::string baseModelFile = argv[2];
+        std::string complementaryModelFile = argv[3];
+        std::string outFile = argv[4];
+        return Merge(baseModelFile, complementaryModelFile, outFile);
     }
 
     PrintUsage(argv);

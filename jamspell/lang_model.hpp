@@ -59,6 +59,7 @@ class TLangModel {
 public:
     bool Train(const std::string& fileName, const std::string& alphabetFile,
                const std::string& pre_trainedModelFile = "");
+    bool Merge(const std::string& baseModelFile, const std::string& complementaryModelFile);
     double Score(const TWords& words) const;
     double Score(const std::wstring& str) const;
     TWord GetWord(const std::wstring& word) const;

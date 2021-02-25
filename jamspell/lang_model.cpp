@@ -95,6 +95,155 @@ void InitializeBuckets(const T& grams, TPerfectHash& ph, std::vector<std::pair<u
     }
 }
 
+bool TLangModel::Merge(const std::string& baseModelFile, const std::string& complementaryModelFile) {
+
+    TLangModel model;
+    TLangModel complementary_model;
+
+    if (!baseModelFile.empty() && !complementaryModelFile.empty()) {
+
+        uint64_t mergeStarTime = GetCurrentTimeMs();
+
+        std::cerr << "[info] loading base model" << std::endl;
+        if (!model.Load(baseModelFile)) {
+            std::cerr << "[error] failed to load model" << std::endl;
+            return false;
+        }
+
+        std::cerr << "[info] loading complementary model" << std::endl;
+        if (!complementary_model.Load(complementaryModelFile)) {
+            std::cerr << "[error] failed to load model" << std::endl;
+            return false;
+        }
+
+        Tokenizer.ExtendAlphabet(model.GetAlphabet());
+        Tokenizer.ExtendAlphabet(complementary_model.GetAlphabet());
+
+        std::unordered_map<TGram1Key, TCount> grams1;
+        std::unordered_map<TGram2Key, TCount, TGram2KeyHash> grams2;
+        std::unordered_map<TGram3Key, TCount, TGram3KeyHash> grams3;
+
+        for (size_t i = 0; i < model.IdToWord.size() - 1; ++i) {
+            TWordId wordId = LastWordID;
+            ++LastWordID;
+            auto it = WordToId.insert(std::make_pair(model.IdToWord[i][0], wordId)).first;
+            IdToWord.push_back(&(it->first));
+
+            if (grams1.find(i) == grams1.end()) {
+                uint64_t key_count = model.GetGram1HashCount(i);
+                grams1[i] = key_count;
+                TotalWords += key_count;
+            }
+
+            for (size_t j = 0; j < model.IdToWord.size() - 1; ++j) {
+
+                TGram2Key key_2(i, j);
+                uint64_t key_2_count = model.GetGram2HashCount(i, j);
+                if (key_2_count > 0 && grams2.find(key_2) == grams2.end()) {
+                    grams2[key_2] = key_2_count;
+
+                    for (size_t k = 0; k < model.IdToWord.size() - 1; ++k) {
+                        TGram3Key key_3(i, j, k);
+                        uint64_t key_3_count = model.GetGram3HashCount(i, j, k);
+                        if (key_3_count > 0 && grams3.find(key_3) == grams3.end()) {
+                            grams3[key_3] = key_3_count;
+                        }
+                    }
+                }
+            }
+        }
+
+        for (size_t i = 0; i < complementary_model.IdToWord.size() - 1; ++i) {
+
+            if (!ContainsWord(complementary_model.IdToWord[i][0])) {
+                TWordId wordId = LastWordID;
+                ++LastWordID;
+                auto it = WordToId.insert(std::make_pair(complementary_model.IdToWord[i][0], wordId)).first;
+                IdToWord.push_back(&(it->first));
+            }
+
+            size_t index_key_i = GetWordIdNoCreate(GetWord(complementary_model.IdToWord[i][0]));
+            uint64_t key_count = complementary_model.GetGram1HashCount(i);
+
+            if (grams1.find(index_key_i) == grams1.end()) {
+                grams1[index_key_i] = key_count;
+            } else {
+                grams1[index_key_i] = grams1[index_key_i] + key_count;
+            }
+            TotalWords += key_count;
+
+            for (size_t j = 0; j < complementary_model.IdToWord.size() - 1; ++j) {
+
+                size_t index_key_j = GetWordIdNoCreate(GetWord(complementary_model.IdToWord[j][0]));
+                TGram2Key key_2(index_key_i, index_key_j);
+
+                uint64_t key_2_count = complementary_model.GetGram2HashCount(i, j);
+                if (key_2_count > 0) {
+                    if (grams2.find(key_2) == grams2.end()) {
+                        grams2[key_2] = key_2_count;
+                    } else {
+                        grams2[key_2] = grams2[key_2] + key_2_count;
+                    }
+
+                    for (size_t k = 0; k < complementary_model.IdToWord.size() - 1; ++k) {
+
+                        size_t index_key_k = GetWordIdNoCreate(GetWord(complementary_model.IdToWord[k][0]));
+                        TGram3Key key_3(index_key_i, index_key_j, index_key_k);
+
+                        uint64_t key_3_count = complementary_model.GetGram3HashCount(i, j, k);
+                        if (key_3_count > 0) {
+                            if (grams3.find(key_3) == grams3.end()) {
+                                grams3[key_3] = key_3_count;
+                            } else {
+                                grams3[key_3] = grams3[key_3] + key_3_count;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        VocabSize = grams1.size();
+
+        std::cerr << "[info] generating keys" << std::endl;
+
+        {
+            std::vector<std::string> keys;
+            keys.reserve(grams1.size() + grams2.size() + grams3.size());
+
+            std::cerr << "[info] ngrams1: " << grams1.size() << "\n";
+            std::cerr << "[info] ngrams2: " << grams2.size() << "\n";
+            std::cerr << "[info] ngrams3: " << grams3.size() << "\n";
+            std::cerr << "[info] total: " << grams3.size() + grams2.size() + grams1.size() << "\n";
+
+            PrepareNgramKeys(grams1, keys);
+            PrepareNgramKeys(grams2, keys);
+            PrepareNgramKeys(grams3, keys);
+
+            std::cerr << "[info] generating perf hash" << std::endl;
+
+            PerfectHash.Init(keys);
+        }
+
+        std::cerr << "[info] finished, buckets: " << PerfectHash.BucketsNumber() << "\n";
+
+        Buckets.resize(PerfectHash.BucketsNumber());
+        InitializeBuckets(grams1, PerfectHash, Buckets);
+        InitializeBuckets(grams2, PerfectHash, Buckets);
+        InitializeBuckets(grams3, PerfectHash, Buckets);
+
+        std::cerr << "[info] buckets filled" << std::endl;
+
+        std::stringbuf checkSumBuf;
+        std::ostream checkSumOut(&checkSumBuf);
+        NHandyPack::Dump(checkSumOut, mergeStarTime, grams1.size(), grams2.size(), grams3.size(),
+                         Buckets.size());
+        std::string checkSumStr = checkSumBuf.str();
+        CheckSum = CityHash64(&checkSumStr[0], checkSumStr.size());
+    }
+    return true;
+}
+
 bool TLangModel::Train(const std::string& fileName, const std::string& alphabetFile,
                        const std::string& pre_trainedModelFile) {
 

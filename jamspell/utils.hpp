@@ -52,6 +52,7 @@ public:
     void Clear();
 
     const std::unordered_set<wchar_t>& GetAlphabet() const;
+    void ExtendAlphabet(const std::unordered_set<wchar_t>& extension);
 
     HANDYPACK(Alphabet)
 private:

@@ -13,6 +13,8 @@ public:
     bool LoadLangModel(const std::string& modelFile);
     bool TrainLangModel(const std::string& textFile, const std::string& alphabetFile, const std::string& modelFile,
                         const std::string& pre_trainedModelFile = "");
+    bool MergeLangModels(const std::string& baseModelFile, const std::string& complementaryModelFile,
+                         const std::string& resultModelFile);
     NJamSpell::TScoredWords GetCandidatesRawWithScores(const NJamSpell::TWords& sentence, size_t position) const;
     NJamSpell::TWords GetCandidatesRaw(const NJamSpell::TWords& sentence, size_t position) const;
     std::vector<std::wstring> GetCandidates(const std::vector<std::wstring>& sentence, size_t position) const;
