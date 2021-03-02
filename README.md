@@ -87,7 +87,7 @@ JamSpell is a spell checking library with following features:
   </tr>
 </table>
 
-Model was trained on [300K wikipedia sentences + 300K news sentences (english)](http://wortschatz.uni-leipzig.de/en/download/). 95% was used for train, 5% was used for evaluation. [Errors model](https://github.com/bakwc/JamSpell/blob/master/evaluate/typo_model.py) was used to generate errored text from the original one. JamSpell corrector was compared with [Norvig's one](http://norvig.com/spell-correct.html), [Hunspell](http://hunspell.github.io/) and a dummy one (no corrections).
+Model was trained on [300K wikipedia sentences + 300K news sentences (english)](http://wortschatz.uni-leipzig.de/en/download/). 95% was used for train, 5% was used for evaluation. [Errors model](https://github.com/ZUZEX/JamSpell/blob/master/evaluate_jamspell/typo_model.py) was used to generate errored text from the original one. JamSpell corrector was compared with [Norvig's one](http://norvig.com/spell-correct.html), [Hunspell](http://hunspell.github.io/) and a dummy one (no corrections).
 
 We used following metrics:
 - **Errors** - percent of words with errors after spell checker processed
@@ -211,7 +211,7 @@ You can generate extensions for other languages using [swig tutorial](http://www
 
 * Clone and build jamspell (it includes http server):
 ```bash
-git clone https://github.com/bakwc/JamSpell.git
+git clone https://github.com/ZUZEX/JamSpell.git
 cd JamSpell
 mkdir build
 cd build
@@ -280,7 +280,7 @@ To train custom model you need:
 
 2. Clone and build jamspell:
 ```bash
-git clone https://github.com/bakwc/JamSpell.git
+git clone https://github.com/ZUZEX/JamSpell.git
 cd JamSpell
 mkdir build
 cd build
@@ -288,17 +288,17 @@ cmake ..
 make
 ```
 
-3. Prepare a utf-8 text file with sentences to train at (eg. [```sherlockholmes.txt```](https://github.com/bakwc/JamSpell/blob/master/test_data/sherlockholmes.txt)) and another file with language alphabet (eg. [```alphabet_en.txt```](https://github.com/bakwc/JamSpell/blob/master/test_data/alphabet_en.txt))
+3. Prepare a utf-8 text file with sentences to train at (eg. [```sherlockholmes.txt```](https://github.com/ZUZEX/JamSpell/blob/master/test_data/sherlockholmes.txt)) and another file with language alphabet (eg. [```alphabet_en.txt```](https://github.com/ZUZEX/JamSpell/blob/master/test_data/alphabet_en.txt))
 
 4. Train model:
 ```bash
 ./main/jamspell train ../test_data/alphabet_en.txt ../test_data/sherlockholmes.txt model_sherlock.bin
 ```
-5. To evaluate spellchecker you can use ```evaluate/evaluate.py``` script:
+5. To evaluate spellchecker you can use ```evaluate_jamspell/evaluate.py``` script:
 ```bash
-python evaluate/evaluate.py -a alphabet_file.txt -jsp your_model.bin -mx 50000 your_test_data.txt
+python evaluate_jamspell/evaluate.py -a alphabet_file.txt -jsp your_model.bin -mx 50000 your_test_data.txt
 ```
-6. You can use ```evaluate/generate_dataset.py``` to generate you train/test data. It supports txt files, [Leipzig Corpora Collection](http://wortschatz.uni-leipzig.de/en/download/) format and fb2 books.
+6. You can use ```evaluate_jamspell/generate_dataset.py``` to generate you train/test data. It supports txt files, [Leipzig Corpora Collection](http://wortschatz.uni-leipzig.de/en/download/) format and fb2 books.
 
 ## Download models
 Here is a few simple models. They trained on 300K news + 300k wikipedia sentences. We strongly recommend to train your own model, at least on a few million sentences to achieve better quality. See [Train](#train) section above.
