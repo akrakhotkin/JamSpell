@@ -1,12 +1,12 @@
 import re
+
 from collections import Counter
-
-
-def words(text): return re.findall(r'\w+', text.lower())
-
 
 WORDS = Counter()
 TOTAL_WORDS = 0
+
+
+def words(text): return re.findall(r'\w+', text.lower())
 
 
 def init(filename='big.txt'):
@@ -16,7 +16,7 @@ def init(filename='big.txt'):
     TOTAL_WORDS = sum(WORDS.values())
 
 
-def P(word, n=None):
+def prob(word, n=None):
     """Probability of `word`."""
     n = n or TOTAL_WORDS
     return WORDS[word] / n
@@ -25,13 +25,13 @@ def P(word, n=None):
 def correction(word):
     if known([word]):
         return word
-    cands = known(edits1(word)) or known(edits2(word))
-    if not cands:
+    candidates = known(edits1(word)) or known(edits2(word))
+    if not candidates:
         return word
-    cands = sorted(cands, key=P, reverse=True)
-    if cands[0] == word:
+    candidates = sorted(candidates, key=prob, reverse=True)
+    if candidates[0] == word:
         return word
-    return sorted(cands, key=P, reverse=True)
+    return sorted(candidates, key=prob, reverse=True)
 
 
 def known(w0rds):

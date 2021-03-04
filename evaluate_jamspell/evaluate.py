@@ -1,20 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import codecs
 import random
 import argparse
 import time
 import copy
 
-import typo_model
-from utils import normalize, loadText, generateSentences
-import utils
 
-try:
-    import readline
-except Exception as e:
-    print(e)
+from evaluate_jamspell.typo_model import generate_typo
+from evaluate_jamspell.utils import normalize, load_text, generate_sentences, load_alphabet
 
 
 class STATE:
@@ -25,7 +19,7 @@ class STATE:
 
 
 def generate_typos(text):
-    return list(map(typo_model.generateTypo, text))
+    return list(map(generate_typo, text))
 
 
 class Corrector(object):
@@ -202,14 +196,14 @@ def test_mode(corrector):
 
 
 def evaluate_jamspell(model_file, test_text, alphabet_file, max_words=50000):
-    utils.loadAlphabet(alphabet_file)
+    load_alphabet(alphabet_file)
     corrector = JamspellCorrector(model_file)
     random.seed(42)
-    original_text = loadText(test_text)
+    original_text = load_text(test_text)
     errored_text = generate_typos(original_text)
     assert len(original_text) == len(errored_text)
-    original_sentences = generateSentences(original_text)
-    errored_sentences = generateSentences(errored_text)
+    original_sentences = generate_sentences(original_text)
+    errored_sentences = generate_sentences(errored_text)
     errors_rate, fix_rate, broken, top_n_err, top_n_fix, exec_time = \
         evaluate_corrector('jamspell', corrector, original_sentences, errored_sentences, max_words)
     return errors_rate, fix_rate, broken, top_n_err, top_n_fix
@@ -229,39 +223,39 @@ def main():
     args = parser.parse_args()
 
     if args.alphabet:
-        utils.loadAlphabet(args.alphabet)
+        load_alphabet(args.alphabet)
 
     correctors = {
         'dummy': DummyCorrector(),
     }
 
-    # corrector = correctors['dummy']
+    corrector = correctors['dummy']
 
     max_words = args.max_words
 
     print('[info] loading models')
 
     if args.hunspell:
-        corrector = correctors['hunspell'] = HunspellCorrector(args.hunspell)
+        correctors['hunspell'] = corrector = HunspellCorrector(args.hunspell)
 
     if args.norvig:
-        corrector = correctors['norvig'] = NorvigCorrector(args.norvig)
+        correctors['norvig'] = corrector = NorvigCorrector(args.norvig)
 
     if args.context:
-        corrector = correctors['context'] = ContextCorrector(args.context)
+        correctors['context'] = corrector = ContextCorrector(args.context)
 
     if args.context_prototype:
-        corrector = correctors['prototype'] = ContextPrototypeCorrector(args.context_prototype)
+        correctors['prototype'] = corrector = ContextPrototypeCorrector(args.context_prototype)
 
     if args.jamspell:
-        corrector = correctors['jamspell'] = JamspellCorrector(args.jamspell)
+        correctors['jamspell'] = corrector = JamspellCorrector(args.jamspell)
 
     if args.test:
         return test_mode(corrector)
 
     random.seed(42)
     print('[info] loading text')
-    original_text = loadText(args.file)
+    original_text = load_text(args.file)
     original_text_length = len(list(original_text))
 
     print('[info] generating typos')
@@ -270,8 +264,8 @@ def main():
 
     assert original_text_length == errored_text_length
 
-    original_sentences = generateSentences(original_text)
-    errored_sentences = generateSentences(errored_text)
+    original_sentences = generate_sentences(original_text)
+    errored_sentences = generate_sentences(errored_text)
 
     assert len(original_sentences) == len(errored_sentences)
 

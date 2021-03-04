@@ -3,8 +3,10 @@
 
 import random
 import bisect
+
 from scipy.stats import binom
-import utils
+
+from evaluate_jamspell.utils import ALPHABET
 
 # todo: calculate correct typo probabilities
 
@@ -22,82 +24,82 @@ assert abs(REPLACE_PROB + INSERT_PROB + REMOVE_PROB + TRANSPOSE_PROB - 1.0) < EP
 
 
 # Randomly selects a value from list [(value, weight), ... ]
-def weightedChoice(values):
+def weighted_choice(values):
     values, weights = zip(*values)
-    totalWeight = sum(weights)
-    sumWeight = 0.
+    total_weight = sum(weights)
+    sum_weight = 0.
     distribution = []
     for w in weights:
-        sumWeight += w
-        distribution.append(sumWeight / totalWeight)
+        sum_weight += w
+        distribution.append(sum_weight / total_weight)
     return values[bisect.bisect(distribution, random.random())]
 
 
-def typoReplace(word):
+def typo_replace(word):
     if not word:
         return word
-    l = random.randint(0, len(word) - 1)
-    return word[:l] + random.choice(utils.ALPHABET) + word[l + 1:]
+    fragment_length = random.randint(0, len(word) - 1)
+    return word[:fragment_length] + random.choice(ALPHABET) + word[fragment_length + 1:]
 
 
-def typoInsert(word):
-    l = random.randint(0, len(word))
-    return word[:l] + random.choice(utils.ALPHABET) + word[l:]
+def typo_insert(word):
+    fragment_length = random.randint(0, len(word))
+    return word[:fragment_length] + random.choice(ALPHABET) + word[fragment_length:]
 
 
-def typoRemove(word):
+def typo_remove(word):
     if not word:
         return word
-    l = random.randint(0, len(word) - 1)
-    return word[:l] + word[l + 1:]
+    fragment_length = random.randint(0, len(word) - 1)
+    return word[:fragment_length] + word[fragment_length + 1:]
 
 
-def swapLetter(s, i, j):
+def swap_letter(s, i, j):
     lst = list(s)
     lst[i], lst[j] = lst[j], lst[i]
     return ''.join(lst)
 
 
-def typoTranspose(word):
+def typo_transpose(word):
     if not word:
         return word
-    l = random.randint(0, len(word) - 1)
-    d = weightedChoice(enumerate(TRANSPOSE_DISTANCE_PROB)) + 1
-    l1 = max(0, l - d // 2)
+    fragment_length = random.randint(0, len(word) - 1)
+    d = weighted_choice(enumerate(TRANSPOSE_DISTANCE_PROB)) + 1
+    l1 = max(0, fragment_length - d // 2)
     l2 = min(len(word) - 1, l1 + d)
-    return swapLetter(word, l1, l2)
+    return swap_letter(word, l1, l2)
 
 
 TYPO_TYPES = [REPLACE_PROB, INSERT_PROB, REMOVE_PROB, TRANSPOSE_PROB]
-TYPO_GENERATORS = [typoReplace, typoInsert, typoRemove, typoTranspose]
+TYPO_GENERATORS = [typo_replace, typo_insert, typo_remove, typo_transpose]
 
 LEN_TO_PROB = {}
 
 
-def getWordTypoChance(word):
-    l = len(word)
-    prob = LEN_TO_PROB.get(l)
+def get_word_typo_chance(word):
+    word_length = len(word)
+    prob = LEN_TO_PROB.get(word_length)
     if prob is None:
-        noTypoChance = 1.0 - TYPO_PROB
-        prob = 1.0 - binom.pmf(l, l, noTypoChance)
-    LEN_TO_PROB[l] = prob
+        no_typo_chance = 1.0 - TYPO_PROB
+        prob = 1.0 - binom.pmf(word_length, word_length, no_typo_chance)
+    LEN_TO_PROB[word_length] = prob
     return prob
 
 
-def generateTypo(word):
+def generate_typo(word):
     if word == '.':
         return word
 
     chance = random.random()
-    required = getWordTypoChance(word)
-    numTypo = 0
+    required = get_word_typo_chance(word)
+    num_typo = 0
 
     if chance < required:
-        numTypo = 1
+        num_typo = 1
     if chance < required * SECOND_TYPO_CF:
-        numTypo = 2
+        num_typo = 2
 
-    for _ in range(numTypo):
-        typoType = weightedChoice(enumerate(TYPO_TYPES))
-        word = TYPO_GENERATORS[typoType](word)
+    for _ in range(num_typo):
+        typo_type = weighted_choice(enumerate(TYPO_TYPES))
+        word = TYPO_GENERATORS[typo_type](word)
     return word

@@ -14,8 +14,8 @@ TRAIN_TEST_SPLIT = 0.95
 LANG_DETECT_FRAGMENT_SIZE = 2000
 
 
-def save_sentences(sentences, fname):
-    with codecs.open(fname, 'w', 'utf-8') as f:
+def save_sentences(sentences, file_name):
+    with codecs.open(file_name, 'w', 'utf-8') as f:
         for s in sentences:
             f.write(s)
             f.write('\n')
@@ -175,7 +175,7 @@ def process_sentences(sentences, out_file):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='datset generator')
+    parser = argparse.ArgumentParser(description='dataset generator')
     parser.add_argument('out_file', type=str, help='will be created out_file_train and out_file_test')
     parser.add_argument('-lz', '--leipzig', type=str, help='path to file or dir with Leipzig Corpora files')
     parser.add_argument('-fb2', '--fb2', type=str, help='path to file or dir with files in FB2 format')

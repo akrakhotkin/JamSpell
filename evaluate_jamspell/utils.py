@@ -5,12 +5,25 @@ import codecs
 
 ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
 
+
+class EmptyModel:
+    @staticmethod
+    def score(*args, **kwargs):
+        if args or kwargs:
+            return 0
+
+    @staticmethod
+    def predict(*args, **kwargs):
+        if args or kwargs:
+            return 0
+
+
 def normalize(text):
     letters = []
-    for l in text.lower():
-        if l in ALPHABET:
-            letters.append(l)
-        elif l in ".?!":
+    for letter in text.lower():
+        if letter in ALPHABET:
+            letters.append(letter)
+        elif letter in ".?!":
             letters.append(' ')
             letters.append('.')
             letters.append(' ')
@@ -20,31 +33,34 @@ def normalize(text):
     text = ' '.join(text.split())
     return text
 
+
 assert normalize('AsD?! d!@$%^^ ee   ') == 'asd . . d . ee'
 
-def loadText(fname):
-    with codecs.open(fname, 'r', 'utf-8') as f:
+
+def load_text(file_name):
+    with codecs.open(file_name, 'r', 'utf-8') as f:
         data = f.read()
         return normalize(data).split()
 
-def loadAlphabet(fname):
+
+def load_alphabet(file_name):
     global ALPHABET
-    with codecs.open(fname, 'r', 'utf-8') as f:
+    with codecs.open(file_name, 'r', 'utf-8') as f:
         data = f.read()
         data = data.strip().lower()
         ALPHABET = data
 
-def generateSentences(words):
+
+def generate_sentences(words):
     sentences = []
-    currSent = []
+    current_sentence = []
     for w in words:
         if w == '.':
-            if currSent:
-                sentences.append(currSent)
-            currSent = []
+            if current_sentence:
+                sentences.append(current_sentence)
+            current_sentence = []
         else:
-            currSent.append(w)
-    if currSent:
-        sentences.append(currSent)
+            current_sentence.append(w)
+    if current_sentence:
+        sentences.append(current_sentence)
     return sentences
-

@@ -1,0 +1,5 @@
+hunspell~=0.5.5
+langdetect==1.0.7
+pytest~=6.2.2
+scipy~=1.6.1
+-e git+https://github.com/kpu/kenlm.git@master#egg=kenlm

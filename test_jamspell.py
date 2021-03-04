@@ -2,6 +2,7 @@ import os
 import pytest
 
 import jamspell
+
 from evaluate_jamspell import generate_dataset
 from evaluate_jamspell.evaluate import evaluate_jamspell
 
@@ -21,7 +22,7 @@ TEMP_TRAIN = TEMP + '_train.txt'
 TEST_DATA = 'test_data/'
 
 
-def teardown_module(module):
+def teardown_module(_module):
     remove_file(TEMP_MODEL)
     remove_file(TEMP_SPELL)
     remove_file(TEMP_TEST)

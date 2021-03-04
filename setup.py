@@ -1,14 +1,14 @@
 import os
 import sys
-import re
+import subprocess
+
 from distutils.command.build import build
 from distutils.command.build_ext import build_ext
-from setuptools.command.install import install
 from distutils.spawn import find_executable
-from distutils.version import LooseVersion
+
 from setuptools import setup
 from setuptools.extension import Extension
-import subprocess
+from setuptools.command.install import install
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -47,11 +47,12 @@ class CustomInstall(install):
 
 
 class Swig3Ext(build_ext):
-    def find_swig(self):
-        swigBinary = find_executable('swig3.0') or find_executable('swig')
-        assert swigBinary is not None
-        assert subprocess.check_output([swigBinary, "-version"]).find(b'SWIG Version 3') != -1
-        return swigBinary
+    @staticmethod
+    def find_swig():
+        swig_binary = find_executable('swig3.0') or find_executable('swig')
+        assert swig_binary is not None
+        assert subprocess.check_output([swig_binary, "-version"]).find(b'SWIG Version 3') != -1
+        return swig_binary
 
 
 VERSION = '0.0.12'
@@ -79,4 +80,7 @@ setup(
         'build_ext': Swig3Ext,
     },
     include_package_data=True,
+    install_requires=['hunspell~=0.5.5', 'langdetect==1.0.7', 'pytest~=6.2.2', 'scipy~=1.6.1',
+                      'kenlm @ git+https://github.com/kpu/kenlm.git@master#egg=kenlm'],
+    dependency_links=["git+https://github.com/kpu/kenlm.git@master#egg=kenlm"]
 )
