@@ -45,9 +45,12 @@ class DummyCorrector(Corrector):
 
 
 class HunspellCorrector(Corrector):
-    def __init__(self, model_path):
+    def __init__(self, model_path, dictionary_path=None):
         super(HunspellCorrector, self).__init__()
-        self.__model = hunspell.HunSpell(model_path + '.dic', model_path + '.aff')
+        if dictionary_path is not None:
+            self.__model = hunspell.HunSpell(dictionary_path, model_path)
+        else:
+            self.__model = hunspell.HunSpell(model_path + '.dic', model_path + '.aff')
 
     def correct(self, sentence, position):
         word = sentence[position]
@@ -67,18 +70,24 @@ class NorvigCorrector(Corrector):
 
 
 class ContextCorrector(Corrector):
-    def __init__(self, model_path):
+    def __init__(self, model_path, text_file=None):
         super(ContextCorrector, self).__init__()
-        context_spell.init(model_path + '.txt', model_path + '.binary')
+        if text_file is not None:
+            context_spell.init(text_file, model_path)
+        else:
+            context_spell.init(model_path + '.txt', model_path + '.binary')
 
     def correct(self, sentence, position):
         return context_spell.correction(sentence, position)
 
 
 class ContextPrototypeCorrector(Corrector):
-    def __init__(self, model_path):
+    def __init__(self, model_path, text_file=None):
         super(ContextPrototypeCorrector, self).__init__()
-        context_spell_prototype.init(model_path + '.txt', model_path + '.bin')
+        if text_file is not None:
+            context_spell_prototype.init(text_file, model_path)
+        else:
+            context_spell_prototype.init(model_path + '.txt', model_path + '.bin')
 
     def correct(self, sentence, position):
         return context_spell_prototype.correction(sentence, position)
