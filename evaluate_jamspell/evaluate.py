@@ -6,6 +6,12 @@ import argparse
 import time
 import copy
 
+import hunspell
+import jamspell
+
+import evaluate_jamspell.norvig_spell as norvig_spell
+import evaluate_jamspell.context_spell as context_spell
+import evaluate_jamspell.context_spell_prototype as context_spell_prototype
 
 from evaluate_jamspell.typo_model import generate_typo
 from evaluate_jamspell.utils import normalize, load_text, generate_sentences, load_alphabet
@@ -41,7 +47,6 @@ class DummyCorrector(Corrector):
 class HunspellCorrector(Corrector):
     def __init__(self, model_path):
         super(HunspellCorrector, self).__init__()
-        import hunspell
         self.__model = hunspell.HunSpell(model_path + '.dic', model_path + '.aff')
 
     def correct(self, sentence, position):
@@ -54,41 +59,34 @@ class HunspellCorrector(Corrector):
 class NorvigCorrector(Corrector):
     def __init__(self, train_file):
         super(NorvigCorrector, self).__init__()
-        import norvig_spell
         norvig_spell.init(train_file)
 
     def correct(self, sentence, position):
         word = sentence[position]
-        import norvig_spell
         return norvig_spell.correction(word)
 
 
 class ContextCorrector(Corrector):
     def __init__(self, model_path):
         super(ContextCorrector, self).__init__()
-        import context_spell
         context_spell.init(model_path + '.txt', model_path + '.binary')
 
     def correct(self, sentence, position):
-        import context_spell
         return context_spell.correction(sentence, position)
 
 
 class ContextPrototypeCorrector(Corrector):
     def __init__(self, model_path):
         super(ContextPrototypeCorrector, self).__init__()
-        import context_spell_prototype
         context_spell_prototype.init(model_path + '.txt', model_path + '.bin')
 
     def correct(self, sentence, position):
-        import context_spell_prototype
         return context_spell_prototype.correction(sentence, position)
 
 
 class JamspellCorrector(Corrector):
     def __init__(self, model_file):
         super(JamspellCorrector, self).__init__()
-        import jamspell
         self.model = jamspell.TSpellCorrector()
         # self.model.SetPenalty(16.0, 0.0)
         if not (self.model.LoadLangModel(model_file)):

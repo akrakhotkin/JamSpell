@@ -9,6 +9,8 @@ import xml.sax
 
 from collections import defaultdict
 
+from langdetect import detect
+
 RANDOM_SEED = 42
 TRAIN_TEST_SPLIT = 0.95
 LANG_DETECT_FRAGMENT_SIZE = 2000
@@ -77,7 +79,6 @@ class DataSource(object):
     def check_lang(self, text_fragment):
         if self.__lang is None:
             return True
-        from langdetect import detect
         if detect(text_fragment) != self.__lang:
             return False
         return True
