@@ -62,6 +62,13 @@ bool TSpellCorrector::TrainLangModel(const std::string& textFile, const std::str
     return true;
 }
 
+bool TSpellCorrector::ConvertLangModel(const std::string& modelFile, const std::string& resultModelFile) {
+    if (!LoadLangModel(modelFile)) {
+        return false;
+    }
+    return LangModel.Convert(resultModelFile.c_str());
+}
+
 bool TSpellCorrector::MergeLangModels(const std::string& baseModelFile, const std::string& complementaryModelFile,
                                       const std::string& resultModelFile) {
     if (!LangModel.Merge(baseModelFile, complementaryModelFile)) {

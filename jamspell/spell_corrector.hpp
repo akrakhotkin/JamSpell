@@ -15,6 +15,7 @@ public:
                         const std::string& pre_trainedModelFile = "");
     bool MergeLangModels(const std::string& baseModelFile, const std::string& complementaryModelFile,
                          const std::string& resultModelFile);
+    bool ConvertLangModel(const std::string& modelFile, const std::string& resultModelFile);
     NJamSpell::TScoredWords GetCandidatesRawWithScores(const NJamSpell::TWords& sentence, size_t position) const;
     NJamSpell::TWords GetCandidatesRaw(const NJamSpell::TWords& sentence, size_t position) const;
     std::vector<std::wstring> GetCandidates(const std::vector<std::wstring>& sentence, size_t position) const;

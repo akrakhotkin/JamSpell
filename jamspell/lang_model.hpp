@@ -14,7 +14,6 @@
 
 namespace NJamSpell {
 
-
 constexpr uint64_t LANG_MODEL_MAGIC_BYTE = 8559322735408079685L;
 constexpr uint16_t LANG_MODEL_VERSION = 9;
 constexpr double LANG_MODEL_DEFAULT_K = 0.05;
@@ -60,6 +59,7 @@ public:
     bool Train(const std::string& fileName, const std::string& alphabetFile,
                const std::string& pre_trainedModelFile = "");
     bool Merge(const std::string& baseModelFile, const std::string& complementaryModelFile);
+    bool Convert(const char *modelFileName);
     double Score(const TWords& words) const;
     double Score(const std::wstring& str) const;
     TWord GetWord(const std::wstring& word) const;
@@ -106,6 +106,5 @@ private:
     TPerfectHash PerfectHash;
     uint64_t CheckSum;
 };
-
 
 } // NJamSpell
